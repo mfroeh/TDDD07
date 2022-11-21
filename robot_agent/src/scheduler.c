@@ -20,6 +20,7 @@
 #include "timelib.h"
 
 /* -- Defines -- */
+#define N 100
 
 /* -- Functions -- */
 
@@ -129,24 +130,19 @@ void scheduler_exec_task(scheduler_t *ces, int task_id)
 
 double get_exec_time(scheduler_t *ces, int task_id) {
 	clock_t start, end;
-	start = clock();
+	struct timeval t;
+	timelib_timer_set(&t);
 	scheduler_exec_task(ces, task_id);
-	end = clock();
-	double time = (double)(end - start) / CLOCKS_PER_SEC;
+	double time = timelib_timer_get(t);
+	// double time = (double)(end - start) / CLOCKS_PER_SEC;
 	printf("Ran task %d in %f", task_id, time);
 	return time;
 }
 
-void dump_to_file(int*** times, int N) {
-	FILE *fp = fopen("times", "w");
-	for (int i = 1; i < 8; i++) {
-		for (int j = 0; j < N; j++) {
-			fprintf(fp, "%f,", times[i][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fclose(fp);
+void save_time(double times[8][N], int count[8], scheduler_t* ces, int task_id) {
+	times[task_id][count[task_id]++] = get_exec_time(ces, task_id);	
 }
+
 
 /**
  * Run scheduler
@@ -161,37 +157,57 @@ void scheduler_run(scheduler_t *ces)
 	ces->minor = 2000;
 	/* --- Write your code here --- */
 
-    int const N = 20;
-
-	double times[8][N];
-	for (int i = 0; i < N; i++) {
+	static int count[8];
+	// memset(count, 0, sizeof(int) * 8);
+	static double times[8][N];
+	// memset(times, 0, sizeof(int) * 8 * N);
+	for (int i = 0; i < 20; i++) {
 		scheduler_start(ces);
 
-		times[s_TASK_MISSION_ID][i] = get_exec_time(ces, s_TASK_MISSION_ID);
-		times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
-		times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);
+		save_time(times, count, ces, s_TASK_MISSION_ID);
 		
-		times[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
-		times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
-		times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);
-		times[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
+		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
+		save_time(times, count, ces, s_TASK_CONTROL_ID);
+		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
+		save_time(times, count, ces, s_TASK_CONTROL_ID);
+		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
+		save_time(times, count, ces, s_TASK_CONTROL_ID);
 		
-		times[s_TASK_REFINE_ID][i] = get_exec_time(ces, s_TASK_REFINE_ID);
-		times[s_TASK_REPORT_ID][i] = get_exec_time(ces, s_TASK_REPORT_ID);
-		times[s_TASK_COMMUNICATE_ID][i] = get_exec_time(ces, s_TASK_COMMUNICATE_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
+
+		save_time(times, count, ces, s_TASK_REFINE_ID);
+		save_time(times, count, ces, s_TASK_REPORT_ID);
+		save_time(times, count, ces, s_TASK_COMMUNICATE_ID);
+		
+
+		// times[s_TASK_MISSION_ID][i] = get_exec_time(ces, s_TASK_MISSION_ID);
+		// times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
+		// times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);		
+		// times[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
+
+		// times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
+		// times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);
+		// ran_twice[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
+		
+		// times[s_TASK_REFINE_ID][i] = get_exec_time(ces, s_TASK_REFINE_ID);
+		// times[s_TASK_REPORT_ID][i] = get_exec_time(ces, s_TASK_REPORT_ID);
+		// times[s_TASK_COMMUNICATE_ID][i] = get_exec_time(ces, s_TASK_COMMUNICATE_ID);
 		
 		double total = 0; 
 		for (int j = 0; j < 8; j++) {
 			total += times[j][i];
 		}
-		printf("Total time %f", total);
 
 		scheduler_wait_for_timer(ces);
-		dump_to_file(times, N);
 	}
-
-	dump_to_file(times, N);
-
+	FILE *fp = fopen("times.csv", "a");
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < N; j++) {
+			fprintf(fp, "%f,", times[i][j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
 
 }
 
