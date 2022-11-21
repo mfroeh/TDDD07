@@ -45,12 +45,14 @@ void task_avoid(void)
 		    if((g_ois->oiss->light_bumper >=8) && (g_ois->oiss->light_bumper  <=32))
 		    {
 			    openinterface_drive(g_ois, g_config.robot_speed, 0x0001);
+				printf("Bumped right! Avoiding!\n");
 			    return;
 		    }
 		    // Left Bump
 		    else if(g_ois->oiss->light_bumper  <=4)
 		    {
 			    openinterface_drive(g_ois, g_config.robot_speed, 0xFFFF );
+				printf("Bumped left! Avoiding!\n");
 			    return;
 		    }
 		     else if(g_ois->oiss->light_bumper  >64)

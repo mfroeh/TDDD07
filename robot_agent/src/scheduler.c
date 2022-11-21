@@ -20,7 +20,7 @@
 #include "timelib.h"
 
 /* -- Defines -- */
-#define N 100
+#define N 10000
 
 /* -- Functions -- */
 
@@ -135,7 +135,7 @@ double get_exec_time(scheduler_t *ces, int task_id) {
 	scheduler_exec_task(ces, task_id);
 	double time = timelib_timer_get(t);
 	// double time = (double)(end - start) / CLOCKS_PER_SEC;
-	printf("Ran task %d in %f", task_id, time);
+	// printf("Ran task %d in %f", task_id, time);
 	return time;
 }
 
@@ -154,29 +154,40 @@ void scheduler_run(scheduler_t *ces)
 	/* --- Local variables (define variables here) --- */
 
 	/* --- Set minor cycle period --- */
-	ces->minor = 2000;
+	ces->minor = 1000;
 	/* --- Write your code here --- */
 
 	static int count[8];
 	// memset(count, 0, sizeof(int) * 8);
 	static double times[8][N];
 	// memset(times, 0, sizeof(int) * 8 * N);
+
+	scheduler_exec_task(ces, s_TASK_AVOID_ID);
 	for (int i = 0; i < 20; i++) {
 		scheduler_start(ces);
+		printf("Starting iteration %d", i);
+
+		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
+		save_time(times, count, ces, s_TASK_CONTROL_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
 
 		save_time(times, count, ces, s_TASK_MISSION_ID);
-		
+
+		for (int x = 0; x < 10; x++) {
+		}
+
 		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
 		save_time(times, count, ces, s_TASK_CONTROL_ID);
-		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
-		save_time(times, count, ces, s_TASK_CONTROL_ID);
-		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
-		save_time(times, count, ces, s_TASK_CONTROL_ID);
-		
 		save_time(times, count, ces, s_TASK_AVOID_ID);
 
 		save_time(times, count, ces, s_TASK_REFINE_ID);
 		save_time(times, count, ces, s_TASK_REPORT_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
+
+		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
+		save_time(times, count, ces, s_TASK_CONTROL_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
+
 		save_time(times, count, ces, s_TASK_COMMUNICATE_ID);
 		
 
@@ -198,6 +209,7 @@ void scheduler_run(scheduler_t *ces)
 			total += times[j][i];
 		}
 
+		printf("Ended tasks for iteration %d\n", i);
 		scheduler_wait_for_timer(ces);
 	}
 	FILE *fp = fopen("times.csv", "a");
