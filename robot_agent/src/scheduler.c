@@ -167,20 +167,19 @@ void scheduler_run(scheduler_t *ces)
 		scheduler_start(ces);
 		printf("Starting iteration %d", i);
 
-		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
-		save_time(times, count, ces, s_TASK_CONTROL_ID);
 		save_time(times, count, ces, s_TASK_AVOID_ID);
-
 		save_time(times, count, ces, s_TASK_MISSION_ID);
 
-		for (int x = 0; x < 10; x++) {
-		}
-
 		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
 		save_time(times, count, ces, s_TASK_CONTROL_ID);
 		save_time(times, count, ces, s_TASK_AVOID_ID);
 
+		for (int x = 0; x < 10; x++) {
+
+		}
+
 		save_time(times, count, ces, s_TASK_REFINE_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
 		save_time(times, count, ces, s_TASK_REPORT_ID);
 		save_time(times, count, ces, s_TASK_AVOID_ID);
 
@@ -189,6 +188,7 @@ void scheduler_run(scheduler_t *ces)
 		save_time(times, count, ces, s_TASK_AVOID_ID);
 
 		save_time(times, count, ces, s_TASK_COMMUNICATE_ID);
+		save_time(times, count, ces, s_TASK_AVOID_ID);
 		
 
 		// times[s_TASK_MISSION_ID][i] = get_exec_time(ces, s_TASK_MISSION_ID);
