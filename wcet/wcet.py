@@ -32,7 +32,8 @@ class Permutation:
     def get_times(self, scenario, taskid):
         times = np.genfromtxt(f"m_{self.id}_{scenario}.csv", delimiter = ",")
         raw = times[taskid]
-        return raw[:int(self.counts[taskid] * N)]
+        # Always ignore the first measurement
+        return raw[1:int(self.counts[taskid] * N)]
 
 p1 = Permutation(1)
 for i in range(1,8):
@@ -104,8 +105,4 @@ for t in range(1, 8):
     max_10_mean = np.mean(max_10)
     max_10_std = np.std(max_10)
 
-    f.write(f"{t},{len(times_t)},{mean_t},{std_t},{max_t},{min_t},{max_10_mean},{max_10_std},{max_10}\n")
-
-    print(f"Have {len(times_t)} data points for task with id {t}.")
-    print(f"Mean: {mean_t}, std: {std_t}, max: {max_t}, min: {min_t}")
-    # print(f"Maximum 10: {max_10}, mean: {max_10_mean}, std: {max_10_std}")
+    f.write(f"{t},{len(times_t)},{mean_t},{std_t},{max_t},{min_t},{max_10_mean},{max_10_std},{','.join(map(str, max_10))}\n")
