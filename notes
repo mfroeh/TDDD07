@@ -1,0 +1,116 @@
+Szenarios:
+1. Corner without other robots
+2. On the field with other robots
+3. One without obstacles (no victim)
+4. One without obstacles (with single victim)
+5. One without obstacles  (triple victim)
+
+
+Task permutation:
+1. Multiple navigation before control
+2. Just a single triple of navigation, control, bump
+
+Notes: We measured with startinga timer of 1 second and waiting on it after every iteration
+We did 20 iterations
+
+do_once:
+1. mission
+2. nvgiate
+3. control
+4. avoid
+5. refine
+6. report
+7. commmunicate
+
+do_thrice:
+1. Navigate
+2. Control
+3. Avoid
+4. Mission
+5. Navigate
+6. Control
+7. Avoid
+8. Refine
+9. Report
+10. Avoid
+11. Navigate
+12. Control
+13. Avoid
+14. Communicate
+
+do_four:
+1. Navigate
+2. Control
+3. Avoid
+4. Mission
+4.1 Refine
+4.2 Report
+4.3 Avoid
+5. Navigate
+6. Control
+7. Avoid
+8. Refine
+9. Report
+10. Avoid
+11. Navigate
+12. Control
+13. Avoid
+14. Communicate
+
+do_five:
+1. Mission
+2. Navigate
+3. Control
+4. Avoid
+5. Refine
+6. Report
+7. Avoid
+8. Navigate
+9. Control
+10. Avoid
+11. Communicate
+
+do_six:
+1. Avoid
+2. Mission
+3. Navigate
+4. Control
+5. Avoid
+6. Refine
+7. Avoid
+8. REport
+9. Avoid
+10. Navigate
+11. control
+12. Avoid
+13. Communicate
+14. Avoid
+
+Notes: Bump sometimes doesn't get recognized when bumping into other robots
+
+Periods:
+Task 1: <= 1300
+Task 2: >= 300
+Task 3: >= 300
+Task 4: <= 1000
+Task 5: <= 1000
+Task 6: <= 1000 // Difference between Refine & Report and Communicate must be <= 1300
+Task 7: <= 150
+
+Task 2 and 3 run together (same period)
+
+Attempt 1:
+We run avoid every 100ms.
+Then minor cycle = 100ms, mayor cycle = 600.
+
+Periods:
+Task 1: = 600 
+Task 2: = 300
+Task 3: = 300
+Task 4: = 200
+Task 5: = 200
+Task 6: = 200 // Difference between Refine & Report and Communicate must be <= 1300
+Task 7: = 100
+
+Attempt 2:
+
