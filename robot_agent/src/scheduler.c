@@ -139,10 +139,14 @@ double get_exec_time(scheduler_t *ces, int task_id) {
 	return time;
 }
 
-void save_time(double times[8][N], int count[8], scheduler_t* ces, int task_id) {
-	times[task_id][count[task_id]++] = get_exec_time(ces, task_id);	
+double exec_and_get_time(scheduler_t* ces, int taskid, struct timeval start) {
+	scheduler_exec_task(ces, taskid);
+	return timelib_timer_get(start);
 }
 
+void save_time(double times[8][N], int count[8], scheduler_t* ces, int task_id, struct timeval start) {
+	times[task_id][count[task_id]++] = exec_and_get_time(ces, task_id, start);	
+}
 
 /**
  * Run scheduler
@@ -154,72 +158,65 @@ void scheduler_run(scheduler_t *ces)
 	/* --- Local variables (define variables here) --- */
 
 	/* --- Set minor cycle period --- */
-	ces->minor = 1000;
-	/* --- Write your code here --- */
+	ces->minor = 100;
 
-	static int count[8];
-	// memset(count, 0, sizeof(int) * 8);
-	static double times[8][N];
-	// memset(times, 0, sizeof(int) * 8 * N);
+	/* --- Write your code here --- */
+	int mayor_cycle = 600;
+	int iterations_per_major_cycle = mayor_cycle / ces->minor;
+	
+	static int periods[8]; 
+	periods[0] = 0;
+	periods[s_TASK_MISSION_ID] = 600;
+	periods[s_TASK_NAVIGATE_ID] = 300;
+	periods[s_TASK_CONTROL_ID] = 300;
+	periods[s_TASK_REFINE_ID] = 200;
+	periods[s_TASK_REPORT_ID] = 200;
+	periods[s_TASK_COMMUNICATE_ID] = 200;
+	periods[s_TASK_AVOID_ID] = 100;
+
+	static double end_times[8][N];
+	static int counts[8];
 
 	scheduler_exec_task(ces, s_TASK_AVOID_ID);
-	for (int i = 0; i < 20; i++) {
+
+	struct timeval start;
+	timelib_timer_set(&start);
+	for (int i = 0; i < 20 * iterations_per_major_cycle; i++) {
 		scheduler_start(ces);
-		printf("Starting iteration %d", i);
 
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-		save_time(times, count, ces, s_TASK_MISSION_ID);
+		int period = i * ces->minor;
+		printf("Starting period %d at %f\n", period, timelib_timer_get(start));
 
-		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
-		save_time(times, count, ces, s_TASK_CONTROL_ID);
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-
-		for (int x = 0; x < 10; x++) {
-
+		if (period % periods[s_TASK_MISSION_ID] == 0) {
+			save_time(end_times, counts, ces, s_TASK_MISSION_ID, start);
 		}
 
-		save_time(times, count, ces, s_TASK_REFINE_ID);
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-		save_time(times, count, ces, s_TASK_REPORT_ID);
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-
-		save_time(times, count, ces, s_TASK_NAVIGATE_ID);
-		save_time(times, count, ces, s_TASK_CONTROL_ID);
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-
-		save_time(times, count, ces, s_TASK_COMMUNICATE_ID);
-		save_time(times, count, ces, s_TASK_AVOID_ID);
-		
-
-		// times[s_TASK_MISSION_ID][i] = get_exec_time(ces, s_TASK_MISSION_ID);
-		// times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
-		// times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);		
-		// times[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
-
-		// times[s_TASK_NAVIGATE_ID][i] = get_exec_time(ces, s_TASK_NAVIGATE_ID);
-		// times[s_TASK_CONTROL_ID][i] = get_exec_time(ces, s_TASK_CONTROL_ID);
-		// ran_twice[s_TASK_AVOID_ID][i] = get_exec_time(ces, s_TASK_AVOID_ID);
-		
-		// times[s_TASK_REFINE_ID][i] = get_exec_time(ces, s_TASK_REFINE_ID);
-		// times[s_TASK_REPORT_ID][i] = get_exec_time(ces, s_TASK_REPORT_ID);
-		// times[s_TASK_COMMUNICATE_ID][i] = get_exec_time(ces, s_TASK_COMMUNICATE_ID);
-		
-		double total = 0; 
-		for (int j = 0; j < 8; j++) {
-			total += times[j][i];
+		if (period % periods[s_TASK_NAVIGATE_ID] == 0) {
+			save_time(end_times, counts, ces, s_TASK_NAVIGATE_ID, start);
+			save_time(end_times, counts, ces, s_TASK_CONTROL_ID, start);
 		}
 
-		printf("Ended tasks for iteration %d\n", i);
+		if (period % periods[s_TASK_AVOID_ID] == 0) {
+			save_time(end_times, counts,ces, s_TASK_AVOID_ID, start);
+		}
+
+		if (period % periods[s_TASK_REFINE_ID] == 0) {
+			save_time(end_times, counts,ces, s_TASK_REFINE_ID, start);
+			save_time(end_times, counts,ces, s_TASK_REPORT_ID, start);
+			save_time(end_times, counts,ces, s_TASK_COMMUNICATE_ID, start);
+		}
+
 		scheduler_wait_for_timer(ces);
+		printf("Ended period %d at %f\n", period, timelib_timer_get(start));
 	}
-	FILE *fp = fopen("times.csv", "a");
+
+	FILE *fp = fopen("exec_times.csv", "a");
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < N; j++) {
-			fprintf(fp, "%f,", times[i][j]);
+			fprintf(fp, "%f,", end_times[i][j]);
 		}
 		fprintf(fp, "\n");
 	}
 	fclose(fp);
-
 }
 
