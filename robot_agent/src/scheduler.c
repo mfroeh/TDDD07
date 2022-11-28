@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <math.h>
 /* project libraries */
 #include "scheduler.h"
 #include "task.h"
@@ -144,7 +145,7 @@ void exec_task(double times[8][N], int count[8], scheduler_t* ces, int task_id, 
 }
 
 /* Write the saved times to file */
-void save_times(char const* fname, double times[8][N], int counts[8], int periods, int minor, int major) {
+void save_times(char const* fname, double times[8][N], int counts[8], int periods[8], int minor, int major) {
 	FILE *fp = fopen(fname, "a");
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < counts[i]; j++) {
@@ -153,14 +154,74 @@ void save_times(char const* fname, double times[8][N], int counts[8], int period
 		fprintf(fp, "\n");
 	}
 
-  fprinft("Minor,Major\n")
-  fprinft("%d,%d", minor, major);
-  for (int i = 0; i < 8 ++i) {
-    fprintf("%d\n", periods[i])
+  fprintf(fp, "Minor,Major\n%d,%d\n", minor, major);
+  for (int i = 0; i < 8; ++i) {
+    fprintf(fp, "%d\n", periods[i]);
   }
 
 	fclose(fp);
 }
+
+/* Returns the true victim position of the found victim with id (based on the pdf) */
+victim_t get_victim(char const* id) {
+  victim_t v;
+
+  // 1
+  if (!strcmp(id, "020058F5BD")) { v.x = 340; v.y = 340; }
+  // 2
+  else if (!strcmp(id, "020053A537")) { v.x = 975; v.y = 1115; }
+  // 3
+  else if (!strcmp(id, "020053E0BA")) { v.x = 1845; v.y = 925; }
+  // 4
+  else if (!strcmp(id, "01004B835E")) { v.x = 2670; v.y = 335; }
+  // 5
+  else if (!strcmp(id, "020053C80E")) { v.x = 3395; v.y = 870; }
+  // 6
+  else if (!strcmp(id, "020058100D")) { v.x = 4645; v.y = 910; }
+  // 7
+  else if (!strcmp(id, "0200580B96")) { v.x = 4800; v.y = 250; }
+  // 8
+  else if (!strcmp(id, "02005345B6")) { v.x = 5395; v.y = 1060; }
+  // 9
+  else if (!strcmp(id, "020058F121")) { v.x = 5830; v.y = 1895; }
+  // 10
+  else if (!strcmp(id, "0200581B9E")) { v.x = 5110; v.y = 2390; }
+  // 157701
+  else if (!strcmp(id, "020058066F")) { v.x = 5770; v.y = 3790; }
+  // 12
+  else if (!strcmp(id, "020058212D")) { v.x = 4500; v.y = 3190; }
+  // 13
+  else if (!strcmp(id, "020058022D")) { v.x = 3415; v.y = 3200; }
+  // 14
+  else if (!strcmp(id, "0200581542")) { v.x = 4150; v.y = 1810; }
+  // 15
+  else if (!strcmp(id, "0200534E5C")) { v.x = 3720; v.y = 3710; }
+  // 16
+  else if (!strcmp(id, "020053AB2C")) { v.x = 2580; v.y = 3770; }
+  // 17
+  else if (!strcmp(id, "01004A11E8")) { v.x = 2970; v.y = 2805; }
+  // 18
+  else if (!strcmp(id, "020053E282")) { v.x = 3030; v.y = 2070; }
+  // 19
+  else if (!strcmp(id, "0200553505")) { v.x = 3120; v.y = 1965; }
+  // 20
+  else if (!strcmp(id, "01004751A2")) { v.x = 2880; v.y = 1840; }
+  // 21
+  else if (!strcmp(id, "02005097C0")) { v.x = 1890; v.y = 2580; }
+  // 22
+  else if (!strcmp(id, "020053BF78")) { v.x = 985; v.y = 3020; }
+  // 23
+  else if (!strcmp(id, "020056D0EF")) { v.x = 730; v.y = 3175; }
+  // 24
+  else if (!strcmp(id, "01004BDF7B")) { v.x = 320; v.y = 1800; } 
+  // Id doesnt exist
+  else {
+    fprintf(stderr, "There is no victim with id %s", id);
+    exit(1);
+  } 
+
+  return v;
+} 
 
 /**
  * Run scheduler
@@ -201,7 +262,7 @@ void scheduler_run(scheduler_t *ces)
 
   /* Run M major cycles */
   unsigned M = 5;
-	for (unsigned i = 0; i < M * mayor_cycle; i += ces->minor) {
+	for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
 		printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 		scheduler_start(ces);
 
@@ -234,6 +295,17 @@ void scheduler_run(scheduler_t *ces)
     /* Wait for minor cycle to finish */
 		scheduler_wait_for_timer(ces);
 	}
+
+  /* Measure accuracy of found victims */
+  for (int i = 0; i < g_task_mission_data.victim_count; ++i) {
+    /* Prediction */
+    victim_t v1 = g_task_mission_data.victims[i];
+    /* Truth */
+    victim_t v2 = get_victim(v1.id);
+    /* Euclidean distance */
+    double distance = sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2));
+    printf("Predicted victim %s at (%d, %d). True position is (%d, %d). Distance = %f", v1.id, v1.x, v1.y, v2.x, v2.y, distance);
+  }
 
   /* Write the times to file */
   save_times("exec.csv", times, counts, periods, ces->minor, major_cycle);
