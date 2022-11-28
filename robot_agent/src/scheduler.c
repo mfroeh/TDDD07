@@ -128,24 +128,38 @@ void scheduler_exec_task(scheduler_t *ces, int task_id)
 	}
 }
 
+/* Executes the task with task_id once and returns its execution time in ms */
 double get_exec_time(scheduler_t *ces, int task_id) {
-	clock_t start, end;
 	struct timeval t;
 	timelib_timer_set(&t);
 	scheduler_exec_task(ces, task_id);
-	double time = timelib_timer_get(t);
-	// double time = (double)(end - start) / CLOCKS_PER_SEC;
-	// printf("Ran task %d in %f", task_id, time);
-	return time;
+	return timelib_timer_get(t);
 }
 
-double exec_and_get_time(scheduler_t* ces, int taskid, struct timeval start) {
-	scheduler_exec_task(ces, taskid);
-	return timelib_timer_get(start);
+/* Executes the given task and writes the time relative to start into times afterwards. */
+void exec_task(double times[8][N], int count[8], scheduler_t* ces, int task_id, struct timeval start) {
+	scheduler_exec_task(ces, task_id);
+	double time = timelib_timer_get(start);
+	times[task_id][count[task_id]++] = time;
 }
 
-void save_time(double times[8][N], int count[8], scheduler_t* ces, int task_id, struct timeval start) {
-	times[task_id][count[task_id]++] = exec_and_get_time(ces, task_id, start);	
+/* Write the saved times to file */
+void save_times(char const* fname, double times[8][N], int counts[8], int periods, int minor, int major) {
+	FILE *fp = fopen(fname, "a");
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < counts[i]; j++) {
+			fprintf(fp, "%f,", times[i][j]);
+		}
+		fprintf(fp, "\n");
+	}
+
+  fprinft("Minor,Major\n")
+  fprinft("%d,%d", minor, major);
+  for (int i = 0; i < 8 ++i) {
+    fprintf("%d\n", periods[i])
+  }
+
+	fclose(fp);
 }
 
 /**
@@ -155,68 +169,73 @@ void save_time(double times[8][N], int count[8], scheduler_t* ces, int task_id, 
  */
 void scheduler_run(scheduler_t *ces)
 {
-	/* --- Local variables (define variables here) --- */
-
 	/* --- Set minor cycle period --- */
 	ces->minor = 100;
 
 	/* --- Write your code here --- */
-	int mayor_cycle = 600;
-	int iterations_per_major_cycle = mayor_cycle / ces->minor;
-	
-	static int periods[8]; 
-	periods[0] = 0;
-	periods[s_TASK_MISSION_ID] = 600;
-	periods[s_TASK_NAVIGATE_ID] = 300;
-	periods[s_TASK_CONTROL_ID] = 300;
-	periods[s_TASK_REFINE_ID] = 200;
-	periods[s_TASK_REPORT_ID] = 200;
-	periods[s_TASK_COMMUNICATE_ID] = 200;
-	periods[s_TASK_AVOID_ID] = 100;
 
-	static double end_times[8][N];
-	static int counts[8];
-
+  /* Avoids first execution takes far longer than the average */
 	scheduler_exec_task(ces, s_TASK_AVOID_ID);
 
+	
+  /* Define major cycle and the periods for the tasks */
+	int major_cycle  = 600;
+
+	static int periods[8]; 
+	periods[0]                     = 0;
+	periods[s_TASK_MISSION_ID]     = 600;
+	periods[s_TASK_NAVIGATE_ID]    = 300;
+	periods[s_TASK_CONTROL_ID]     = 300;
+	periods[s_TASK_REFINE_ID]      = 200;
+	periods[s_TASK_REPORT_ID]      = 200;
+	periods[s_TASK_COMMUNICATE_ID] = 200;
+	periods[s_TASK_AVOID_ID]       = 100;
+
+  /* Matrix of the tasks execution time relative to start */
+	static double times[8][N];
+	static int counts[8];
+
+  /* Start a timer */ 
 	struct timeval start;
 	timelib_timer_set(&start);
-	for (int i = 0; i < 20 * iterations_per_major_cycle; i++) {
+
+  /* Run M major cycles */
+  unsigned M = 5;
+	for (unsigned i = 0; i < M * mayor_cycle; i += ces->minor) {
+		printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 		scheduler_start(ces);
 
-		int period = i * ces->minor;
-		printf("Starting period %d at %f\n", period, timelib_timer_get(start));
-
-		if (period % periods[s_TASK_MISSION_ID] == 0) {
-			save_time(end_times, counts, ces, s_TASK_MISSION_ID, start);
+		if (i % periods[s_TASK_MISSION_ID] == 0) {
+			exec_task(times, counts, ces, s_TASK_MISSION_ID, start);
 		}
 
-		if (period % periods[s_TASK_NAVIGATE_ID] == 0) {
-			save_time(end_times, counts, ces, s_TASK_NAVIGATE_ID, start);
-			save_time(end_times, counts, ces, s_TASK_CONTROL_ID, start);
+    /* Always run navigate and control together */
+		if (i % periods[s_TASK_NAVIGATE_ID] == 0) {
+			exec_task(times, counts, ces, s_TASK_NAVIGATE_ID, start);
+			exec_task(times, counts, ces, s_TASK_CONTROL_ID, start);
 		}
 
-		if (period % periods[s_TASK_AVOID_ID] == 0) {
-			save_time(end_times, counts,ces, s_TASK_AVOID_ID, start);
+		if (i % periods[s_TASK_AVOID_ID] == 0) {
+			exec_task(times, counts,ces, s_TASK_AVOID_ID, start);
 		}
 
-		if (period % periods[s_TASK_REFINE_ID] == 0) {
-			save_time(end_times, counts,ces, s_TASK_REFINE_ID, start);
-			save_time(end_times, counts,ces, s_TASK_REPORT_ID, start);
-			save_time(end_times, counts,ces, s_TASK_COMMUNICATE_ID, start);
+    /* Always run refine and report together */
+		if (i % periods[s_TASK_REFINE_ID] == 0) {
+			exec_task(times, counts,ces, s_TASK_REFINE_ID, start);
+			exec_task(times, counts,ces, s_TASK_REPORT_ID, start);
 		}
 
+		if (i % periods[s_TASK_COMMUNICATE_ID] == 0) {
+			exec_task(times, counts,ces, s_TASK_COMMUNICATE_ID, start);
+		}
+
+    double cur = timelib_timer_get(start);
+		printf("Ended tasks for this minor cycle at %fms with %fms to spare \n", cur, (double)(i + ces->minor) - cur);
+    /* Wait for minor cycle to finish */
 		scheduler_wait_for_timer(ces);
-		printf("Ended period %d at %f\n", period, timelib_timer_get(start));
 	}
 
-	FILE *fp = fopen("exec_times.csv", "a");
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < N; j++) {
-			fprintf(fp, "%f,", end_times[i][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fclose(fp);
+  /* Write the times to file */
+  save_times("exec.csv", times, counts, periods, ces->minor, major_cycle);
 }
 
