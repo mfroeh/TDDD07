@@ -112,5 +112,18 @@ Task 5: = 200
 Task 6: = 200 // Difference between Refine & Report and Communicate must be <= 1300
 Task 7: = 100
 
+Ran it accross 5 scenarios for 50 major cycles
+
 Attempt 2:
+Task 1: = 250
+Task 2: = 375
+Task 3: = 375
+Task 4: = 125
+Task 5: = 125
+Task 6: = 1000
+Task 7: = 125
+
+Ran it accross 5 scenarios for 10 major cycles
+
+Attempt 3:
 

@@ -146,24 +146,24 @@ void exec_task(double times[8][N], int count[8], scheduler_t* ces, int task_id, 
 
 /* Write the saved times to file */
 void save_times(double times[8][N], int counts[8], int periods[8], double victims[24][3]) {
-	FILE *fp = fopen("exec", "w");
+	FILE *fp = fopen("exec.csv", "w");
 	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < counts[i]; j++) {
+		for (int j = 0; j < N; j++) {
 			fprintf(fp, "%f,", times[i][j]);
 		}
 		fprintf(fp, "\n");
 	}
   fclose(fp);
 
-  FILE *meta = fopen("periods", "w");
+  FILE *meta = fopen("period.csv", "w");
   for (int i = 0; i < 8; ++i) {
     fprintf(meta, "%d\n", periods[i]);
   }
 	fclose(meta);
 
-  FILE *acc = fopen("acc", "w");
+  FILE *acc = fopen("acc.csv", "w");
   for (int i = 0; i < 24; ++i) {
-    fprintf(acc, "%d,%d,%f", (int)victims[i][0], (int)victims[i][1], victims[i][2]);
+    fprintf(acc, "%d,%d,%f\n", (int)victims[i][0], (int)victims[i][1], victims[i][2]);
   }
   fclose(acc);
 }
@@ -223,7 +223,7 @@ my_victim_t get_victim(char const* id) {
 void scheduler_run(scheduler_t *ces)
 {
 	/* --- Set minor cycle period --- */
-	ces->minor = 100;
+	ces->minor = 125;
 
 	/* --- Write your code here --- */
 
@@ -232,17 +232,17 @@ void scheduler_run(scheduler_t *ces)
 
 	
   /* Define major cycle and the periods for the tasks */
-	int major_cycle  = 600;
+	int major_cycle  = 3000;
 
 	static int periods[8]; 
 	periods[0]                     = 0;
-	periods[s_TASK_MISSION_ID]     = 600;
-	periods[s_TASK_NAVIGATE_ID]    = 300;
-	periods[s_TASK_CONTROL_ID]     = 300;
-	periods[s_TASK_REFINE_ID]      = 200;
-	periods[s_TASK_REPORT_ID]      = 200;
-	periods[s_TASK_COMMUNICATE_ID] = 200;
-	periods[s_TASK_AVOID_ID]       = 100;
+	periods[s_TASK_MISSION_ID]     = 250;
+	periods[s_TASK_NAVIGATE_ID]    = 375;
+	periods[s_TASK_CONTROL_ID]     = 375;
+	periods[s_TASK_REFINE_ID]      = 250;
+	periods[s_TASK_REPORT_ID]      = 250;
+	periods[s_TASK_COMMUNICATE_ID] = 1000;
+	periods[s_TASK_AVOID_ID]       = 125;
 
   /* Matrix of the tasks execution time relative to start */
 	static double times[8][N];
@@ -253,7 +253,7 @@ void scheduler_run(scheduler_t *ces)
 	timelib_timer_set(&start);
 
   /* Run M major cycles */
-  unsigned M = 5;
+  unsigned M = 10;
 	for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
 		printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 		scheduler_start(ces);
