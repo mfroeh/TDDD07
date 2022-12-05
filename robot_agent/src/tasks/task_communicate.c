@@ -43,6 +43,9 @@ void task_communicate(void)
 		//	LAB 2 starts here
 		// --------------------------------------------------
 
+		// NOTE: Should be able to send 153600 / 8 / 8 = 2400 bytes
+		// Assume that robot clock is the same as mission control clock
+		// Has to start EXACTLY on the slot
 
 		/* --- Send Data --- */
 		while(g_list_send->count != 0)
@@ -79,7 +82,7 @@ void task_communicate(void)
 			}
 
 			// Get data from the list
-			doublylinkedlist_remove(g_list_send, g_list_send->first ,data, &data_type);
+			doublylinkedlist_remove(g_list_send, g_list_send->first, data, &data_type);
 
 			// Encode data into UDP packet
 			protocol_encode(udp_packet,

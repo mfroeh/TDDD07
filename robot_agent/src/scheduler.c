@@ -21,7 +21,7 @@
 #include "timelib.h"
 
 /* -- Defines -- */
-#define N 10000
+#define N 100000
 
 /* -- Functions -- */
 
@@ -253,10 +253,14 @@ void scheduler_run(scheduler_t *ces)
 	timelib_timer_set(&start);
 
   /* Run M major cycles */
-  unsigned M = 10;
+  unsigned M = 1000;
 	for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
 		printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 		scheduler_start(ces);
+
+		if (i % periods[s_TASK_COMMUNICATE_ID] == 0) {
+			exec_task(times, counts,ces, s_TASK_COMMUNICATE_ID, start);
+		}
 
 		if (i % periods[s_TASK_MISSION_ID] == 0) {
 			exec_task(times, counts, ces, s_TASK_MISSION_ID, start);
@@ -276,10 +280,6 @@ void scheduler_run(scheduler_t *ces)
 		if (i % periods[s_TASK_REFINE_ID] == 0) {
 			exec_task(times, counts,ces, s_TASK_REFINE_ID, start);
 			exec_task(times, counts,ces, s_TASK_REPORT_ID, start);
-		}
-
-		if (i % periods[s_TASK_COMMUNICATE_ID] == 0) {
-			exec_task(times, counts,ces, s_TASK_COMMUNICATE_ID, start);
 		}
 
     double cur = timelib_timer_get(start);
