@@ -51,6 +51,9 @@ class Schedule:
 
     def evaluate_acc(self):
         count = sum(1 for x in self.acc if x[0] != 0)
+        if not count:
+            return 0, 0, 0
+
         total = sum(x[2] for x in self.acc if x[0] != 0)
         mean = total / count
 
@@ -61,16 +64,16 @@ def eval_schedule(schedule):
     ev = np.zeros((8, 6))
     # For every scenario
     for i in range(1, 6):
-        s1.load_times(i)
+        schedule.load_times(i)
         # For all the tasks
         for t in range(8):
-            n, o, b = s1.evaluate_deadline()[t]
+            n, o, b = schedule.evaluate_deadline()[t]
             print(n)
             ev[t][0] += n
             ev[t][1] += o
             ev[t][2] += b
 
-            c, te, m = s1.evaluate_acc()
+            c, te, m = schedule.evaluate_acc()
             ev[t][3] += c
             ev[t][4] += te
             ev[t][5] += m / 5
