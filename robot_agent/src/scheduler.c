@@ -253,20 +253,18 @@ void scheduler_run(scheduler_t *ces)
 
   scheduler_start(ces);
 
-
-
+  /* Start a timer */ 
+	struct timeval start;
+	timelib_timer_set(&start);
 
   struct timeval tv;
   struct timezone tz;
   gettimeofday(&tv, NULL);
-  suseconds_t next_second = tv.tv_usec % (1000 * 1000); // mili * micro
+  suseconds_t next_second = 1000 * 1000 - tv.tv_usec; // mili * micro
   suseconds_t sleep = next_second + 250 * 1000;
-  usleep(sleep);
 
-    /* Start a timer */ 
-	struct timeval start;
-	timelib_timer_set(&start);
-
+  usleep(next_second);
+  usleep(250 * 1000);
 
   /* Run M major cycles */
   unsigned M = 1000;
