@@ -229,7 +229,6 @@ void scheduler_run(scheduler_t *ces)
 
   /* Avoids first execution takes far longer than the average */
 	scheduler_exec_task(ces, s_TASK_AVOID_ID);
-
 	
   /* Define major cycle and the periods for the tasks */
 	int major_cycle  = 3000;
@@ -247,6 +246,11 @@ void scheduler_run(scheduler_t *ces)
   /* Matrix of the tasks execution time relative to start */
 	static double times[8][N];
 	static int counts[8];
+
+  /* Wait before starting to fit in timeslot */
+  int timeslot = 3;
+  int wait_ms = (1000 / 8) * (timeslot - 1);
+  usleep(wait_ms * 1000);
 
   /* Start a timer */ 
 	struct timeval start;
@@ -283,7 +287,7 @@ void scheduler_run(scheduler_t *ces)
 		}
 
     double cur = timelib_timer_get(start);
-		printf("Ended tasks for this minor cycle at %fms with %fms to spare \n", cur, (double)(i + ces->minor) - cur);
+		printf("Ended tasks for this minor cycle at %fms with %fms to spare \n", cur, (double)(i + ces->minor + wait_ms) - cur);
     /* Wait for minor cycle to finish */
 		scheduler_wait_for_timer(ces);
 	}
