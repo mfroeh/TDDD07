@@ -250,17 +250,28 @@ void scheduler_run(scheduler_t *ces)
   /* Wait before starting to fit in timeslot */
   int timeslot = 3;
   int wait_ms = (1000 / 8) * (timeslot - 1);
-  usleep(wait_ms * 1000);
 
-  /* Start a timer */ 
+  scheduler_start(ces);
+
+
+
+
+  struct timeval tv;
+  struct timezone tz;
+  gettimeofday(&tv, NULL);
+  suseconds_t next_second = tv.tv_usec % (1000 * 1000); // mili * micro
+  suseconds_t sleep = next_second + 250 * 1000;
+  usleep(sleep);
+
+    /* Start a timer */ 
 	struct timeval start;
 	timelib_timer_set(&start);
+
 
   /* Run M major cycles */
   unsigned M = 1000;
 	for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
 		printf("Starting period %d at %f\n", i, timelib_timer_get(start));
-		scheduler_start(ces);
 
 		if (i % periods[s_TASK_COMMUNICATE_ID] == 0) {
 			exec_task(times, counts,ces, s_TASK_COMMUNICATE_ID, start);

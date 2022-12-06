@@ -20,6 +20,7 @@ sed -i "s/\(port *= *\).*/\1$LAB_GROUP_PORT/" ./robot_agent/bin/res/config.ini
 sed -i "s/\(id *= *\).*/\1$ROBOT_ID/" ./robot_agent/res/config.ini
 sed -i "s/\(port *= *\).*/\1$LAB_GROUP_PORT/" ./robot_agent/res/config.ini
 
+echo $ROBOT_IP
 
 ssh rescue@$ROBOT_IP mkdir /home/rescue/TDDD07
 ssh rescue@$ROBOT_IP mkdir /home/rescue/TDDD07/LabGroup$LAB_GROUP
