@@ -14,8 +14,6 @@
 /* project libraries */
 #include "task.h"
 
-
-
 /* int queue_send(queue_t* queue) { */
 /*   void* data = NULL; */
 /*   int data_type; */
@@ -70,7 +68,9 @@ void task_communicate(void) {
         //	LAB 2 starts here
         // --------------------------------------------------
 
-        // NOTE: Should be able to send 153600 / 8 / 8 = 2400 bytes
+        // NOTE: Should be ablstatic int sent[5];
+        // static int bytes_send[5];
+        // static int aheads;e to send 153600 / 8 / 8 = 2400 bytes
         // Assume that robot clock is the same as mission control clock
         // Has to start EXACTLY on the slot
 
@@ -81,7 +81,12 @@ void task_communicate(void) {
         queue_t *streams = queue_init();
 
         // How many items of the specific type were in the send_list
-        static int found[5];
+        int found[5];
+        found[0] = 0;
+        found[1] = 0;
+        found[2] = 0;
+        found[3] = 0;
+        found[4] = 0;
 
         // Traverse send list
         while (g_list_send->count != 0) {
@@ -145,8 +150,12 @@ void task_communicate(void) {
 
         // How many bytes we can still send
         int bytes_left = 153600 / 8 / 8; // bits per second / timeslot / byte count
-
-        static int sent[5];
+        bytes_left -= 50;
+        
+        printf("Positions : %d", found[s_DATA_STRUCT_TYPE_ROBOT]);
+        printf("Pheromones : %d", found[s_DATA_STRUCT_TYPE_PHEROMONE]);
+        printf("Stream : %d", found[s_DATA_STRUCT_TYPE_STREAM]);
+        printf("Victims : %d", found[s_DATA_STRUCT_TYPE_VICTIM]);
 
         // Send victim messages
         for (int i = 0; i < found[s_DATA_STRUCT_TYPE_VICTIM]; ++i) {
@@ -168,10 +177,12 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                bytes_send[data_type] += udp_packet_len;
             }
             // Free memory
             free(data);
         }
+        queue_destroy(victims);
 
         // Send position
         for (int i = 0; i < 1; ++i) {
@@ -195,10 +206,13 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                bytes_send[data_type] += udp_packet_len;
             }
             // Free memory
             free(data);
         }
+        queue_destroy(positions);
+
 
         // Send pheromones
         for (int i = 0; i < 8; ++i) {
@@ -222,10 +236,13 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                bytes_send[data_type] += udp_packet_len;
             }
             // Free memory
             free(data);
         }
+        queue_destroy(maps);
+
 
         // Send stream data if possible
         for (int i = 0; i < found[s_DATA_STRUCT_TYPE_STREAM]; ++i) {
@@ -249,10 +266,13 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                bytes_send[data_type] += udp_packet_len;
             }
             // Free memory
             free(data);
         }
+        queue_destroy(streams);
+
 
         printf("Sending done\n");
 
@@ -286,6 +306,8 @@ void task_communicate(void) {
                         int send_time_ms = packet.send_time % 1000;
                         int now = floor(((long long) timelib_unix_timestamp() % 60000) / 1000);
                         debug_printf("GO_AHEAD_TIME: %d (%d)\n", send_time_s, now);
+
+                        aheads++;
 
                         break;
                     }
