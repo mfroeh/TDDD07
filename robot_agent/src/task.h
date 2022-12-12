@@ -181,4 +181,8 @@ void task_refine(void); // Refine position, localization
 void task_report(void); // Report victim
 void task_communicate(void); // Communication (receive and send data)
 
+int sent[5];
+int bytes_send[5];
+int aheads;
+
 #endif /* __TASK_H */

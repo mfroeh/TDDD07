@@ -335,30 +335,23 @@ void scheduler_run(scheduler_t *ces) {
     static double times[8][N];
     static int counts[8];
 
-    /* Wait before starting to fit in timeslot */
-    int timeslot = 3;
-    int wait_ms = (1000 / 8) * (timeslot - 1);
-
-    scheduler_start(ces);
-
     /* Start a timer */
     struct timeval start;
     timelib_timer_set(&start);
 
-    struct timeval tv;
-    struct timezone tz;
-    gettimeofday(&tv, NULL);
-    // mili * micro
-    suseconds_t next_second = 1000 * 1000 - tv.tv_usec;
-    suseconds_t sleep = next_second + 250 * 1000;
-
-    usleep(next_second);
-    usleep(250 * 1000);
+    int robot = 8;
+   
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+    int sleep_time = 1000000 - tv_now.tv_usec;
+    usleep(sleep_time);
+    usleep(125*1000*(robot-1));    
 
     /* Run M major cycles */
-    unsigned M = 1000;
+    unsigned M = 5;
+    scheduler_start(ces);
     for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
-        printf("Starting period %d at %f\n", i, timelib_timer_get(start));
+        //printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 
         if (i % periods[s_TASK_COMMUNICATE_ID] == 0) {
             exec_task(times, counts, ces, s_TASK_COMMUNICATE_ID, start);
@@ -384,12 +377,16 @@ void scheduler_run(scheduler_t *ces) {
             exec_task(times, counts, ces, s_TASK_REPORT_ID, start);
         }
 
-        double cur = timelib_timer_get(start);
-        printf("Ended tasks for this minor cycle at %fms with %fms to spare \n", cur,
-               (double) (i + ces->minor + wait_ms) - cur);
+        //double cur = timelib_timer_get(start);
+        //printf("Ended tasks for this minor cycle at %fms with %fms to spare \n", cur,
+        //       (double) (i + ces->minor + wait_ms) - cur);
         /* Wait for minor cycle to finish */
+        printf("Sent %d bytes of pheromones\n", bytes_send[s_DATA_STRUCT_TYPE_PHEROMONE]);
         scheduler_wait_for_timer(ces);
     }
+
+    gettimeofday(&tv_now, NULL);
+    printf("Ran for %lfs",(double)(tv_now.tv_sec - start.tv_sec));
 
     static double victims[24][3];
     /* Measure accuracy of found victims */
