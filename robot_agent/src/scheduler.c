@@ -335,20 +335,20 @@ void scheduler_run(scheduler_t *ces) {
     static double times[8][N];
     static int counts[8];
 
-    /* Start a timer */
-    struct timeval start;
-    timelib_timer_set(&start);
-
     int robot = 8;
    
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
     int sleep_time = 1000000 - tv_now.tv_usec;
     usleep(sleep_time);
-    usleep(125*1000*(robot-1));    
+    usleep(125*1000*(robot-1));
+
+    /* Start a timer */
+    struct timeval start;
+    timelib_timer_set(&start);
 
     /* Run M major cycles */
-    unsigned M = 5;
+    unsigned M = 10;
     scheduler_start(ces);
     for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
         //printf("Starting period %d at %f\n", i, timelib_timer_get(start));
