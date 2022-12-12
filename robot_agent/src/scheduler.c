@@ -386,7 +386,8 @@ void scheduler_run(scheduler_t *ces) {
     }
 
     gettimeofday(&tv_now, NULL);
-    printf("Ran for %lfs",(double)(tv_now.tv_sec - start.tv_sec));
+    double seconds_ran = (double)(tv_now.tv_sec - start.tv_sec);
+    printf("Ran for %fs", seconds_ran);
 
     static double victims[24][3];
     /* Measure accuracy of found victims */
@@ -412,4 +413,17 @@ void scheduler_run(scheduler_t *ces) {
 
     /* Write the times, periods, and victim predictions to file */
     save_times(times, counts, periods, victims);
+
+    /* Save how many packets we sent and how many bytes that was */
+    FILE *fp = fopen("packets.csv", "w");
+    for (int i = 0; i < 5; ++i) {
+      fprintf(fp, "%d,%d\n", sent[i], bytes_send[i]);
+    }
+    fprintf(fp, "%d,%f", aheads, seconds_ran);
+    fclose(fp);
 }
+
+/* int sent[5]; */
+/* int bytes_send[5]; */
+/* int aheads; */
+
