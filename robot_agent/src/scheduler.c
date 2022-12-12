@@ -335,7 +335,7 @@ void scheduler_run(scheduler_t *ces) {
     static double times[8][N];
     static int counts[8];
 
-    int robot = 8;
+    int robot = 3;
    
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
