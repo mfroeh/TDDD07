@@ -45,6 +45,7 @@
  * Communication (receive and send data)
  */
 void task_communicate(void) {
+    call++;
     // Check if task is enabled
     if (g_task_communicate.enabled == s_TRUE) {
         // Loacal variables
@@ -146,6 +147,10 @@ void task_communicate(void) {
             free(data);
         }
 
+        for (size_t i = 0; i < 5; i++) {
+            found_i[i][call] = found[i];
+        }
+
         printf("Sending start\n");
 
         // How many bytes we can still send
@@ -177,7 +182,9 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                sent_i[data_type][call]++;
                 bytes_send[data_type] += udp_packet_len;
+                bytes_sent_i[data_type][call] += udp_packet_len;
             }
             // Free memory
             free(data);
@@ -206,7 +213,9 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                sent_i[data_type][call]++;
                 bytes_send[data_type] += udp_packet_len;
+                bytes_sent_i[data_type][call] += udp_packet_len;
             }
             // Free memory
             free(data);
@@ -236,7 +245,9 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                sent_i[data_type][call]++;
                 bytes_send[data_type] += udp_packet_len;
+                bytes_sent_i[data_type][call] += udp_packet_len;
             }
             // Free memory
             free(data);
@@ -266,7 +277,9 @@ void task_communicate(void) {
             if ((bytes_left -= udp_packet_len) >= 0) {
                 udp_broadcast(g_udps, udp_packet, udp_packet_len);
                 sent[data_type]++;
+                sent_i[data_type][call]++;
                 bytes_send[data_type] += udp_packet_len;
+                bytes_sent_i[data_type][call] += udp_packet_len;
             }
             // Free memory
             free(data);
@@ -308,6 +321,7 @@ void task_communicate(void) {
                         debug_printf("GO_AHEAD_TIME: %d (%d)\n", send_time_s, now);
 
                         aheads++;
+                        aheads_i[call]++;
 
                         break;
                     }

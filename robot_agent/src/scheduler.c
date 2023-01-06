@@ -421,6 +421,14 @@ void scheduler_run(scheduler_t *ces) {
     }
     fprintf(fp, "%d,%f", aheads, seconds_ran);
     fclose(fp);
+
+    fp = fopen("packets_individual.csv", "w");
+    for (size_t i = 0; i < CALL_MAX; ++i) {
+        for (size_t j = 0; j < 5; ++j) {
+            fprintf(fp, "%d, %d, %d, %d \n", found_i[j][i], sent_i[j][i], bytes_sent_i[j][i], aheads_i[i]);
+        }
+    }
+    fclose(fp);
 }
 
 /* int sent[5]; */
