@@ -185,8 +185,9 @@ int sent[5];
 int bytes_send[5];
 int aheads;
 
-#define CALL_MAX 10000;
-int call = 0;
+#define CALL_MAX 10000
+
+int call;
 int found_i[5][CALL_MAX];
 int sent_i[5][CALL_MAX];
 int bytes_sent_i[5][CALL_MAX];

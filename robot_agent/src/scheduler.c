@@ -348,8 +348,9 @@ void scheduler_run(scheduler_t *ces) {
     timelib_timer_set(&start);
 
     /* Run M major cycles */
-    unsigned M = 1000;
+    unsigned M = 10;
     scheduler_start(ces);
+    call = -1;
     for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
         //printf("Starting period %d at %f\n", i, timelib_timer_get(start));
 
@@ -422,12 +423,46 @@ void scheduler_run(scheduler_t *ces) {
     fprintf(fp, "%d,%f", aheads, seconds_ran);
     fclose(fp);
 
-    fp = fopen("packets_individual.csv", "w");
-    for (size_t i = 0; i < CALL_MAX; ++i) {
-        for (size_t j = 0; j < 5; ++j) {
-            fprintf(fp, "%d, %d, %d, %d \n", found_i[j][i], sent_i[j][i], bytes_sent_i[j][i], aheads_i[i]);
+    // fp = fopen("packets_individual.csv", "w");
+    // for (size_t i = 0; i < CALL_MAX; ++i) {
+    //     for (size_t j = 0; j < 5; ++j) {
+    //         fprintf(fp, "%d, %d, %d, %d \n", found_i[j][i], sent_i[j][i], bytes_sent_i[j][i], aheads_i[i]);
+    //     }
+    // }
+    // fclose(fp);
+
+    fp = fopen("packet_found.csv", "w");
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < CALL_MAX; j++) {
+            fprintf(fp, "%d,", found_i[i][j]);
         }
+        fprintf(fp, "\n");
     }
+    fclose(fp);
+    
+    fp = fopen("packet_sent.csv", "w");
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < CALL_MAX; j++) {
+            fprintf(fp, "%d,", sent_i[i][j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+
+        fp = fopen("packet_sent_bytes.csv", "w");
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < CALL_MAX; j++) {
+            fprintf(fp, "%d,", bytes_sent_i[i][j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+
+    fp = fopen("packet_aheads.csv", "w");
+    for (int i = 0; i < CALL_MAX; ++i) {
+        fprintf(fp, "%d,", aheads_i[i]);
+    }
+    fprintf(fp, "\n");
     fclose(fp);
 }
 
