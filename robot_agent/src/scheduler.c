@@ -335,7 +335,7 @@ void scheduler_run(scheduler_t *ces) {
     static double times[8][N];
     static int counts[8];
 
-    int robot = 3;
+    int robot = 7;
    
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
@@ -348,7 +348,7 @@ void scheduler_run(scheduler_t *ces) {
     timelib_timer_set(&start);
 
     /* Run M major cycles */
-    unsigned M = 10;
+    unsigned M = 1000;
     scheduler_start(ces);
     for (unsigned i = 0; i < M * major_cycle; i += ces->minor) {
         //printf("Starting period %d at %f\n", i, timelib_timer_get(start));

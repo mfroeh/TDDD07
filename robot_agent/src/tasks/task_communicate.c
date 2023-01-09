@@ -192,6 +192,7 @@ void task_communicate(void) {
         queue_destroy(victims);
 
         // Send position
+        if (found[s_DATA_STRUCT_TYPE_ROBOT] > 0) {
         for (int i = 0; i < 1; ++i) {
             data = (void *) malloc(sizeof(robot_t));
             queue_dequeue(positions, data, &data_type);
@@ -221,8 +222,9 @@ void task_communicate(void) {
             free(data);
         }
         queue_destroy(positions);
+        }
 
-
+        if (found[s_DATA_STRUCT_TYPE_PHEROMONE] > 0) {
         // Send pheromones
         for (int i = 0; i < 8; ++i) {
             data = (void *) malloc(sizeof(pheromone_map_sector_t));
@@ -253,6 +255,7 @@ void task_communicate(void) {
             free(data);
         }
         queue_destroy(maps);
+        }
 
 
         // Send stream data if possible
